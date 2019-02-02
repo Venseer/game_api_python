@@ -68,11 +68,11 @@ class PlatformCollection(Resource):
         arguments = delete_parser.parse_args()
         platform = Platform.query.filter(Platform.deleted == False).filter(Platform.id == arguments['platform_id']).first()
         if platform is not None:
-            db.session.delete(platform)
+            platform.deleted = True
             db.session.commit()
             return PlatformResult(platform).__dict__
         else:
-            return '', 204
+            return 'Platform not found.', 400
 
 
 class PlatformResult:
