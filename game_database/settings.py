@@ -18,3 +18,6 @@ class Config(object):
     # SQLAlchemy settings
     SQLALCHEMY_DATABASE_URI = db_uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    GIANT_BOMB_API_KEY = 'AddYourGiantBombAPIHere'
+

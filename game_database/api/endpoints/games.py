@@ -31,8 +31,8 @@ class GamesCollections(Resource):
                 filter(Game.deleted == False).\
                 join(Game.platform)
 
-        print(query)
-        for res in query.all():
+        result_list = query.all()
+        for res in result_list:
             result.append(GameResult(res[0], res[1]).__dict__)
         return result, 200
 
@@ -41,7 +41,7 @@ class GamesCollections(Resource):
     @my_api.response(400, 'Request Error.')
     def post(self):
         """
-        Adds a new Platform
+        Adds a new Game
         """
         arguments = insert_parser.parse_args()
         exists = db.session().query(Platform).filter(Platform.id == arguments['platform_id']).scalar()
