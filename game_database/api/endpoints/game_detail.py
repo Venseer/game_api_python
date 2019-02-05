@@ -17,6 +17,13 @@ insert_parser.add_argument('platform_id', type=int)
 delete_parser = reqparse.RequestParser()
 delete_parser.add_argument('game_id', type=int)
 
+update_parser = reqparse.RequestParser()
+update_parser.add_argument('game_id', type=int)
+update_parser.add_argument('game_name', type=str)
+update_parser.add_argument('game_deck', type=str)
+update_parser.add_argument('platform_id', type=int)
+
+
 
 @ns.route('/')
 class GamesCollections(Resource):
@@ -35,6 +42,8 @@ class GamesCollections(Resource):
         for res in result_list:
             result.append(GameResult(res[0], res[1]).__dict__)
         return result, 200
+
+
 
     @my_api.expect(insert_parser, validate=True)
     @my_api.response(200, 'Platform successfully created.')
@@ -70,6 +79,22 @@ class GamesCollections(Resource):
             return GameResult(game).__dict__
         else:
             return 'Game not found.', 400
+
+    @my_api.expect(update_parser, validate=True)
+    @my_api.response(200, 'Game successfully updated.')
+    def put(self):
+        """
+        Updates a Game
+        """
+        arguments = update_parser.parse_args()
+        game = Game.query.get(arguments['game_id'])
+        if game is None:
+            return 'Game does not exist', 400
+        game.platform_id = arguments['platform_id']
+        game.name = arguments['game_name']
+        game.deck = arguments['game_deck']
+        db.session.commit()
+        return GameResult(game).__dict__, 200
 
 
 class GameResult:

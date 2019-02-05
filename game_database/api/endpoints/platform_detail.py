@@ -6,7 +6,7 @@ from game_database.database.models import Platform
 from game_database.database import db
 
 log = logging.getLogger(__name__)
-ns = my_api.namespace('platform', description='Platform List')
+ns = my_api.namespace('platforms', description='Platform List')
 
 insert_parser = reqparse.RequestParser()
 insert_parser.add_argument('platform_name', type=str)
@@ -53,9 +53,12 @@ class PlatformCollection(Resource):
         """
         arguments = update_parser.parse_args()
         platform = Platform.query.get(arguments['platform_id'])
+        if platform is None:
+            return 400, 'Platform not found.'
         platform.name = arguments['platform_name']
         platform.abbreviation = arguments['platform_abbreviation']
         db.session.commit()
+
         return PlatformResult(platform).__dict__
 
     @my_api.expect(delete_parser, validate=True)
