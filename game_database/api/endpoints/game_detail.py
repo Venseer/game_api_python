@@ -4,10 +4,14 @@ from flask_restplus import Resource, reqparse
 from game_database.api.restplus import my_api
 from game_database.database.models import Game
 from game_database.database import db
-from game_database.api.endpoints.platforms import Platform, PlatformResult
+from game_database.api.endpoints.platform_detail import Platform, PlatformResult
 
 log = logging.getLogger(__name__)
-ns = my_api.namespace('game', description='Games list')
+ns = my_api.namespace('game', description='Game Controller')
+
+get_parser = reqparse.RequestParser()
+get_parser.add_argument('game_id', type=int)
+
 
 insert_parser = reqparse.RequestParser()
 insert_parser.add_argument('game_name', type=str)
@@ -24,26 +28,29 @@ update_parser.add_argument('game_deck', type=str)
 update_parser.add_argument('platform_id', type=int)
 
 
-
 @ns.route('/')
 class GamesCollections(Resource):
 
+    @my_api.response(200, 'Game found.')
+    @my_api.response(400, 'Request error.')
+    @my_api.response(201, 'Game not found.')
+    @my_api.expect(get_parser, validate=True)
     def get(self):
         """
-        Returns a list of games
+        Returns a game.
         """
-        result = []
-
-        query = db.session.query(Game, Platform).\
-                filter(Game.deleted == False).\
+        game_id = get_parser.parse_args()['game_id']
+        if game_id is None:
+            return 'Game id can not be empty.', 400
+        query = db.session.query(Game, Platform). \
+                filter(Game.deleted == False). \
+                filter(Game.id == game_id). \
                 join(Game.platform)
 
-        result_list = query.all()
-        for res in result_list:
-            result.append(GameResult(res[0], res[1]).__dict__)
-        return result, 200
-
-
+        game_result = query.one_or_none()
+        if game_result is None:
+            return 'Game not found', 201
+        return GameResult(game_result[0], game_result[1]).__dict__, 200
 
     @my_api.expect(insert_parser, validate=True)
     @my_api.response(200, 'Platform successfully created.')
@@ -69,7 +76,7 @@ class GamesCollections(Resource):
     @my_api.response(400, 'Game not found.')
     def delete(self):
         """
-        Delete a Platform
+        Deletes a game
         """
         arguments = delete_parser.parse_args()
         game = Game.query.filter(Game.deleted == False).filter(Game.id == arguments['game_id']).first()

@@ -29,12 +29,11 @@ def populate_database():
     has_error = platforms.populate_platforms()
     if not has_error:
         click.echo('Ok!')
+        click.echo('Games table...')
 
-    click.echo('Games table...')
-    has_error = games.populate_games()
+    has_error = has_error or games.populate_games()
+    
     if not has_error:
         click.echo('Ok!')
-
-    if not has_error:
         click.echo('Database cleared and populated.')
 

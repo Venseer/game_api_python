@@ -4,8 +4,10 @@ from flask import Flask, Blueprint
 
 from game_database.settings import Config
 from game_database.api.restplus import my_api
-from game_database.api.endpoints.games import ns as games_endpoint
-from game_database.api.endpoints.platforms import ns as platforms_endpoint
+from game_database.api.endpoints.game_detail import ns as game_detail
+from game_database.api.endpoints.platform_detail import ns as platform_detail
+from game_database.api.endpoints.games import ns as games
+from game_database.api.endpoints.platforms import ns as platforms
 from game_database.database import db
 from flask_migrate import Migrate
 
@@ -20,8 +22,10 @@ def create_app():
 
     blueprint = Blueprint('api', __name__, url_prefix="/api")
     my_api.init_app(blueprint)
-    my_api.add_namespace(games_endpoint)
-    my_api.add_namespace(platforms_endpoint)
+    my_api.add_namespace(game_detail)
+    my_api.add_namespace(platform_detail)
+    my_api.add_namespace(games)
+    my_api.add_namespace(platforms)
     app.register_blueprint(blueprint)
 
     db.init_app(app)

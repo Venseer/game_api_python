@@ -6,7 +6,10 @@ from game_database.database.models import Platform
 from game_database.database import db
 
 log = logging.getLogger(__name__)
-ns = my_api.namespace('platforms', description='Platform List')
+ns = my_api.namespace('platform', description='Platform controller')
+
+get_parser = reqparse.RequestParser()
+get_parser.add_argument('platform_id', type=int)
 
 insert_parser = reqparse.RequestParser()
 insert_parser.add_argument('platform_name', type=str)
@@ -24,14 +27,24 @@ delete_parser.add_argument('platform_id', type=int)
 @ns.route('/')
 class PlatformCollection(Resource):
 
+    @my_api.response(200, 'Platform result.')
+    @my_api.response(400, 'Request error.')
+    @my_api.response(201, 'Platform not found.')
+    @my_api.expect(get_parser, validate=True)
     def get(self):
         """
-        Returns a list of Platforms in the DB
+        Returns a single Platform
         """
-        result = []
-        for platform in db.session.query(Platform).filter(Platform.deleted == False).all():
-            result.append(PlatformResult(platform).__dict__)
-        return result
+        platform_id = get_parser.parse_args()['platform_id']
+        if platform_id is None:
+            return 'Platform id can not be empty.', 400
+        platform = db.session.query(Platform). \
+                filter(Platform.deleted == False). \
+                filter(Platform.id == platform_id). \
+                one_or_none()
+        if platform is None:
+            return 'Platform not found', 201
+        return PlatformResult(platform).__dict__, 200
 
     @my_api.expect(insert_parser, validate=True)
     @my_api.response(200, 'Platform successfully created.')
@@ -43,13 +56,13 @@ class PlatformCollection(Resource):
         platform = Platform(name=arguments['platform_name'], abbreviation=arguments['platform_abbreviation'], deleted=False)
         db.session.add(platform)
         db.session.commit()
-        return PlatformResult(platform).__dict__
+        return PlatformResult(platform).__dict__, 200
 
     @my_api.expect(update_parser, validate=True)
     @my_api.response(200, 'Platform successfully updated.')
     def put(self):
         """
-        Updates a new Platform
+        Updates a Platform
         """
         arguments = update_parser.parse_args()
         platform = Platform.query.get(arguments['platform_id'])
@@ -59,21 +72,21 @@ class PlatformCollection(Resource):
         platform.abbreviation = arguments['platform_abbreviation']
         db.session.commit()
 
-        return PlatformResult(platform).__dict__
+        return PlatformResult(platform).__dict__, 200
 
     @my_api.expect(delete_parser, validate=True)
     @my_api.response(200, 'Platform deleted.')
     @my_api.response(204, 'Platform not found.')
     def delete(self):
         """
-        Delete a Platform
+        Deletes a Platform
         """
         arguments = delete_parser.parse_args()
         platform = Platform.query.filter(Platform.deleted == False).filter(Platform.id == arguments['platform_id']).first()
         if platform is not None:
             platform.deleted = True
             db.session.commit()
-            return PlatformResult(platform).__dict__
+            return PlatformResult(platform).__dict__, 200
         else:
             return 'Platform not found.', 400
 

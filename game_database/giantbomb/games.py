@@ -18,7 +18,7 @@ def populate_games():
     total_elements = 0
     error = False
 
-    database_platforms = db.session.query(Platform).filter(or_(Platform.abbreviation.in_ (['PS1', 'PS2', 'PS3', 'PS4', 'NES', 'SNES','N64', 'GB','GBA', 'PC']))).all()
+    database_platforms = db.session.query(Platform).filter(or_(Platform.abbreviation.in_(['PS1', 'PS2', 'PS3', 'PS4','NES', 'SNES','N64', 'GB','GBA', 'PC']))).all()
 
     for platform in database_platforms:
         params['filter'] = 'platform:' + platform.id.__str__()

@@ -3,7 +3,6 @@ import os
 
 class Config(object):
     # Flask settings
-    FLASK_SERVER_NAME = 'localhost:2001'
     FLASK_DEBUG = True  # Do not use debug mode in production
 
     # Flask-Restplus settings
